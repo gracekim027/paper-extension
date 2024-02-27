@@ -1,11 +1,9 @@
 import * as Types from './types';
-// For cited, related and author detail
 
 let navigationType: Types.NavigationPath;
 let targetPaper: Types.PaperEntry;
 let searchResult: Types.SearchResult;
 let searchContext: Types.SearchContext;
-let searchEvent: Types.SearchEvent;
 
   // Store navigation type in local storage
   async function storeNavigationType(type: Types.NavigationPath) {
@@ -26,12 +24,14 @@ let searchEvent: Types.SearchEvent;
     // Find authors element within the container element
     const authorsDiv = containerElement.querySelector('div.gs_a');
     if (authorsDiv?.textContent) {
-        const authorLinks = authorsDiv.querySelectorAll('a');
-        authorLinks.forEach(authorLink => {
-            //너무 불규칙해서 링크 있는 사람만 author 넣는것으로 대체
-            if (authorLink.textContent) authors.push(authorLink.textContent.trim());
+      const text = authorsDiv.textContent.trim();
+      const authorPattern = /^(.*?)(?:\s*-\s*.*)?(\.{3})?$/;
+      //@ts-ignore
+      const authorPart = authorPattern.exec(text)[1];
+      authors = authorPart.split(',').map(author => {
+        return author.trim().replace(/[^\w\s]*$/, '');
     });
-    }
+    };
 
     // If title and authors are found, store the target paper in local storage
     if (title && authors.length > 0) {
@@ -72,20 +72,20 @@ document.addEventListener('click', function(event) {
             relatedArticleAnchor = anchorTags[3];
         }
 
-        if (citedByAnchor) {
-            storeTargetPaper(paperContainer as HTMLElement);
+        if (citedByAnchor === clickedElement) {
             event.preventDefault();
             event.stopPropagation(); 
+            storeTargetPaper(paperContainer as HTMLElement);
             navigateToUrl((citedByAnchor as HTMLAnchorElement).getAttribute('href') || '', Types.NavigationPath.CitedBy);
         }
 
-        if (relatedArticleAnchor) {
-            storeTargetPaper(paperContainer as HTMLElement);
+        if (relatedArticleAnchor === clickedElement) {
             event.preventDefault();
             event.stopPropagation(); 
+            storeTargetPaper(paperContainer as HTMLElement);
             navigateToUrl((relatedArticleAnchor as HTMLAnchorElement).getAttribute('href') || '', Types.NavigationPath.Related);
         }
-}
+    }
     
     // Author detail search
     if (closestAuthorElement && (closestAuthorElement as HTMLAnchorElement).getAttribute('href')) {
@@ -96,7 +96,6 @@ document.addEventListener('click', function(event) {
   });
 
 window.addEventListener('load', () => {
-console.log("=====Detail Content=====")
   const navigationType = JSON.parse(localStorage.getItem('navigationType') || 'null');
   const targetPaperString = localStorage.getItem('targetPaper');
   
@@ -130,7 +129,6 @@ console.log("=====Detail Content=====")
           };
     }
   }
-  console.log(searchContext);
   crawlPapers();
 });
 
@@ -147,12 +145,14 @@ function crawlPapers() {
 
     const authorsDiv = paperElement.querySelector('div.gs_a');
     if (authorsDiv?.textContent) {
-      const authorsText = authorsDiv.textContent.trim();
-      const nbspIndex = authorsText.indexOf('&nbsp;');
-      let authorsSubstring = authorsText.substring(0, nbspIndex);
-      authors = authorsSubstring.split(',');
-      authors = authors.map(author => author.trim());
-    }
+      const text = authorsDiv.textContent.trim();
+      const authorPattern = /^(.*?)(?:\s*-\s*.*)?(\.{3})?$/;
+      //@ts-ignore
+      const authorPart = authorPattern.exec(text)[1];
+      authors = authorPart.split(',').map(author => {
+        return author.trim().replace(/[^\w\s]*$/, '');
+    });
+    };
 
     if (title && authors.length > 0) {
       const paper: Types.PaperEntry = {
@@ -160,8 +160,25 @@ function crawlPapers() {
         authorNames: authors
       };
       papers.push(paper);
-      console.log(paper);
     }
   });
-  return papers;
+  const newSearchResult = {paperEntries: papers};
+  updateSearchEvent(searchContext, newSearchResult);
+}
+
+function updateSearchEvent(context: Types.SearchContext, result: Types.SearchResult) {
+  const newSearchEvent: Types.SearchEvent = {
+      context: context,
+      result: result,
+  };
+
+  console.log(newSearchEvent);
+  chrome.storage.local.set({SearchEvent: JSON.stringify(newSearchEvent)});
+  sendMessageToBackgroundScript(newSearchEvent);
+}
+
+function sendMessageToBackgroundScript(event: Types.SearchEvent) {
+  chrome.runtime.sendMessage({type: 'SearchEventChange', event: event}, response => {
+      //Response from background script
+  });
 }

@@ -34,8 +34,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "..", "src", "popup.html"),
             filename: "popup.html",
-            chunks: ["background"], // Assuming "background" is your entry point
+            chunks: ["background"], 
         }),
-        // Add more HtmlWebpackPlugin instances for additional HTML files if needed
     ],
 };

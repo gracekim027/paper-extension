@@ -1,0 +1,1 @@
+(()=>{"use strict";chrome.runtime.onMessage.addListener((function(e,t,n){"SearchEventChange"===e.type&&chrome.storage.local.get("SearchEvent",(e=>{const t=e.SearchEvent,n=t?JSON.parse(t):null;n&&console.log(n.context.eventType)}))}))})();
