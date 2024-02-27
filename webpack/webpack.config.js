@@ -1,6 +1,6 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+//const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     mode: "production",
@@ -9,7 +9,6 @@ module.exports = {
         author_content: path.resolve(__dirname, '..', 'src', 'author-content.ts'),
         search_content: path.resolve(__dirname, '..', 'src', 'search-content.ts'),
         detail_content: path.resolve(__dirname, '..', 'src', 'detail-content.ts'),
-        popup: path.resolve(__dirname, "..", "src", "popup.js"),
     },
     output: {
         path: path.join(__dirname, "../dist"),
@@ -30,11 +29,6 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [{from: ".", to: ".", context: "public"}]
-        }),
-        new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, "..", "src", "popup.html"),
-            filename: "popup.html",
-            chunks: ["background"], 
         }),
     ],
 };

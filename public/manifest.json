@@ -13,9 +13,6 @@
     "https://scholar.google.com/*",
     "https://scholar.google.co.kr/*"
   ],
-  "action": {
-    "default_popup": "popup.html"
-  },
   "background": {
     "service_worker": "background.js"
   },
