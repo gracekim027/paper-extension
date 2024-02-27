@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "PaperExtension",
+  "version": "1.0",
+  "description": "PaperExtension",
+  "permissions": [
+    "webRequest",
+    "webNavigation",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [ 
+    "https://scholar.google.com/*",
+    "https://scholar.google.co.kr/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://scholar.google.com/citations*"],
+      "js": ["author_content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://scholar.google.com/scholar*related:*", "https://scholar.google.com/scholar*cites*"],
+      "js": ["detail_content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://scholar.google.com/scholar*"],
+      "exclude_matches": ["https://scholar.google.com/scholar*related:*", "https://scholar.google.com/scholar*cites*"],
+      "js": ["search_content.js"],
+      "run_at": "document_idle"
+    }
+  ]  
+}
